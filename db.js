@@ -22,8 +22,16 @@ export const getDb = async () => {
 
   if (!clientPromise || cachedUri !== mongoUri) {
     cachedUri = mongoUri
-    const client = new MongoClient(mongoUri)
-    clientPromise = client.connect()
+    const client = new MongoClient(mongoUri, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+    })
+
+    clientPromise = client.connect().catch((error) => {
+      clientPromise = null
+      cachedUri = null
+      throw error
+    })
   }
 
   const client = await clientPromise
